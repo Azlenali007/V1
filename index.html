@@ -1,0 +1,1372 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SMM Panel - Social Media Marketing Hub</title>
+    <meta name="description" content="Premium SMM Panel featuring 3D interactive card slider, order management, wallet, services catalog, support tickets, and admin dashboard." />
+    <meta property="og:title" content="SMM Panel - Social Media Marketing Hub" />
+    <meta property="og:description" content="Premium SMM Panel featuring 3D interactive card slider, order management, wallet, services catalog, support tickets, and admin dashboard." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="stylesheet" href="/src/index.css" />
+  </head>
+  <body class="bg-[#f0f4f9] text-slate-800 antialiased min-h-screen selection:bg-blue-500 selection:text-white" x-data="smmApp()">
+
+    <!-- Toast Notification Banner -->
+    <div x-show="toast.show" 
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0 -translate-y-4"
+         x-transition:enter-end="opacity-100 translate-y-0"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100 translate-y-0"
+         x-transition:leave-end="opacity-0 -translate-y-4"
+         class="fixed top-5 right-5 z-50 flex items-center gap-3 px-5 py-3 rounded-2xl shadow-2xl border"
+         :class="toast.type === 'error' ? 'bg-rose-50 text-rose-700 border-rose-200 shadow-rose-500/10' : 'bg-emerald-50 text-emerald-800 border-emerald-200 shadow-emerald-500/10'"
+         style="display: none;">
+      <template x-if="toast.type === 'error'">
+        <svg class="w-5 h-5 text-rose-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      </template>
+      <template x-if="toast.type !== 'error'">
+        <svg class="w-5 h-5 text-emerald-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      </template>
+      <span class="text-sm font-semibold" x-text="toast.message"></span>
+    </div>
+
+    <!-- MAIN APP WRAPPER -->
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 pb-24">
+
+      <!-- ============================================== -->
+      <!-- TOP NAVIGATION BAR (Matching screenshot #2)   -->
+      <!-- ============================================== -->
+      <header class="glass-nav rounded-3xl p-4 sm:p-5 mb-6 shadow-sm border border-white/80 flex flex-wrap items-center justify-between gap-4">
+        <!-- Logo & Branding -->
+        <div class="flex items-center gap-3 cursor-pointer" @click="navigate('dashboard')">
+          <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-white shadow-lg shadow-blue-500/25">
+            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M4 19h4v-7H4v7zm6 0h4v-12h-4v12zm6-16v16h4V3h-4z"/>
+            </svg>
+          </div>
+          <div>
+            <h1 class="font-extrabold text-lg sm:text-xl tracking-tight text-slate-900 leading-tight">SMM Panel</h1>
+            <p class="text-xs text-slate-400 font-medium">Grow Your Social Media</p>
+          </div>
+        </div>
+
+        <!-- Center: User Identity (if logged in) -->
+        <template x-if="user.isLoggedIn">
+          <div class="hidden md:flex items-center gap-3 bg-white/70 px-4 py-2 rounded-2xl border border-slate-100 shadow-sm cursor-pointer hover:bg-white transition" @click="navigate('profile')">
+            <div class="w-9 h-9 rounded-full bg-blue-100 text-blue-600 font-bold flex items-center justify-center text-sm ring-2 ring-blue-500/20">
+              <span x-text="user.name ? user.name.charAt(0) : 'U'"></span>
+            </div>
+            <div class="text-left">
+              <div class="text-xs text-slate-400 font-medium">Welcome back,</div>
+              <div class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+                <span x-text="user.name"></span>
+                <span class="text-[11px] font-semibold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded-md" x-text="'User ID: #' + user.id"></span>
+              </div>
+            </div>
+          </div>
+        </template>
+
+        <!-- Right: Balance Pill & Controls -->
+        <div class="flex items-center gap-3 ml-auto sm:ml-0">
+          <template x-if="user.isLoggedIn">
+            <div class="flex items-center gap-3 bg-slate-50/80 p-1.5 sm:p-2 rounded-2xl border border-slate-200/80 shadow-inner">
+              <div class="px-2 sm:px-3 text-right">
+                <span class="block text-[10px] uppercase font-bold tracking-wider text-slate-400">Your Balance</span>
+                <span class="text-base sm:text-lg font-black text-slate-900" x-text="'₹' + Number(user.balance).toFixed(2)"></span>
+              </div>
+              <button @click="navigate('add-funds')" 
+                      class="px-3.5 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold text-xs sm:text-sm hover:from-blue-700 hover:to-indigo-700 transition shadow-md shadow-blue-500/20 flex items-center gap-1 active:scale-95 cursor-pointer">
+                <span>+ Add Funds</span>
+              </button>
+            </div>
+          </template>
+
+          <!-- Quick Action Buttons -->
+          <div class="flex items-center gap-2">
+            <!-- Admin Portal Switch -->
+            <button @click="navigate(currentView === 'admin' ? 'dashboard' : 'admin')" 
+                    class="p-2.5 rounded-2xl border transition shadow-sm cursor-pointer"
+                    :class="currentView === 'admin' ? 'bg-purple-600 text-white border-purple-600 shadow-purple-500/20' : 'bg-white text-slate-600 border-slate-200/80 hover:bg-slate-50'"
+                    title="Switch to Admin Panel">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            </button>
+
+            <!-- Auth / Login / Logout -->
+            <template x-if="user.isLoggedIn">
+              <button @click="logout()" 
+                      class="p-2.5 rounded-2xl bg-white text-slate-600 border border-slate-200/80 hover:bg-slate-50 transition shadow-sm cursor-pointer"
+                      title="Logout">
+                <svg class="w-5 h-5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+              </button>
+            </template>
+            <template x-if="!user.isLoggedIn">
+              <button @click="navigate('auth')" 
+                      class="px-4 py-2.5 rounded-2xl bg-blue-600 text-white font-semibold text-sm hover:bg-blue-700 transition shadow-md shadow-blue-500/25 cursor-pointer">
+                Sign In
+              </button>
+            </template>
+          </div>
+        </div>
+      </header>
+
+      <!-- ============================================== -->
+      <!-- VIEW 1: DASHBOARD (CARD HUB WITH 3D SLIDER)    -->
+      <!-- ============================================== -->
+      <section x-show="currentView === 'dashboard'" x-transition:enter="transition duration-200" x-transition:leave="transition duration-100">
+
+        <!-- 3D SLIDER STAGE (Matching screenshot #2) -->
+        <div class="relative py-6 sm:py-10 mb-8 overflow-hidden rounded-3xl bg-gradient-to-b from-white/90 via-white/50 to-transparent border border-white/60 shadow-sm">
+          
+          <div class="text-center mb-6 px-4">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-600 mb-2">
+              <span class="w-2 h-2 rounded-full bg-blue-600 animate-pulse"></span>
+              Interactive 3D Hub
+            </span>
+            <h2 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Manage Your Growth Instantly</h2>
+            <p class="text-xs sm:text-sm text-slate-500 mt-1 max-w-md mx-auto">Drag or swipe cards to navigate. Click active card to open.</p>
+          </div>
+
+          <!-- Slider Container with GSAP 3D Transform -->
+          <div id="dashboard-slider-container" class="perspective-container relative h-[360px] sm:h-[400px] flex items-center justify-center select-none cursor-grab active:cursor-grabbing px-4">
+            
+            <!-- Card 1: Add Funds (Green glow, Left position) -->
+            <div class="dashboard-3d-card card-3d absolute w-[260px] sm:w-[310px] h-[340px] sm:h-[370px] rounded-3xl p-6 bg-gradient-to-br from-emerald-500 to-teal-700 text-white card-glow-green cursor-pointer flex flex-col justify-between"
+                 @click="navigate('add-funds')">
+              <div>
+                <div class="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center mb-6 text-white shadow-inner">
+                  <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                </div>
+                <span class="text-xs font-bold uppercase tracking-widest text-emerald-100 opacity-90">Quick Deposit</span>
+                <h3 class="text-2xl font-black mt-1">Add Funds</h3>
+                <p class="text-emerald-100 text-sm mt-2 font-medium opacity-90">Top up your wallet instantly via UPI, Cards, or NetBanking.</p>
+              </div>
+              <div class="pt-4 border-t border-white/20 flex items-center justify-between">
+                <span class="text-xs font-semibold text-emerald-100">Min ₹100</span>
+                <button class="px-4 py-2 rounded-xl bg-white/20 hover:bg-white text-white hover:text-emerald-800 font-bold text-xs flex items-center gap-1.5 transition">
+                  <span>Open</span>
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- Card 2: New Order (Center Active, Vibrant Blue/Purple glow) -->
+            <div class="dashboard-3d-card card-3d absolute w-[280px] sm:w-[330px] h-[350px] sm:h-[390px] rounded-3xl p-7 bg-gradient-to-br from-blue-600 via-indigo-600 to-violet-700 text-white card-glow-blue cursor-pointer flex flex-col justify-between"
+                 @click="navigate('new-order')">
+              <div>
+                <div class="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center mb-6 text-white shadow-inner">
+                  <svg class="w-9 h-9" fill="currentColor" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                </div>
+                <span class="text-xs font-bold uppercase tracking-widest text-blue-200">Express Delivery</span>
+                <h3 class="text-3xl font-black mt-1">New Order</h3>
+                <p class="text-blue-100 text-sm mt-2 font-medium leading-relaxed">Place a new order for your social media channels with guaranteed speeds.</p>
+              </div>
+              <div class="pt-5 border-t border-white/20 flex items-center justify-between">
+                <span class="text-xs font-bold text-blue-200 bg-white/10 px-2.5 py-1 rounded-lg">Instant Start</span>
+                <button class="px-5 py-2.5 rounded-xl bg-white text-blue-700 font-extrabold text-sm flex items-center gap-2 shadow-lg shadow-black/10 hover:bg-blue-50 transition active:scale-95">
+                  <span>Open</span>
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- Card 3: My Orders (Amber/Orange glow, Right position) -->
+            <div class="dashboard-3d-card card-3d absolute w-[260px] sm:w-[310px] h-[340px] sm:h-[370px] rounded-3xl p-6 bg-gradient-to-br from-amber-500 to-orange-600 text-white card-glow-orange cursor-pointer flex flex-col justify-between"
+                 @click="navigate('my-orders')">
+              <div>
+                <div class="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center mb-6 text-white shadow-inner">
+                  <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+                </div>
+                <span class="text-xs font-bold uppercase tracking-widest text-amber-100 opacity-90">Live Tracking</span>
+                <h3 class="text-2xl font-black mt-1">My Orders</h3>
+                <p class="text-amber-100 text-sm mt-2 font-medium opacity-90">Track your order statuses, links, and completion logs in real time.</p>
+              </div>
+              <div class="pt-4 border-t border-white/20 flex items-center justify-between">
+                <span class="text-xs font-semibold text-amber-100" x-text="orders.length + ' Orders'"></span>
+                <button class="px-4 py-2 rounded-xl bg-white/20 hover:bg-white text-white hover:text-orange-800 font-bold text-xs flex items-center gap-1.5 transition">
+                  <span>Open</span>
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                </button>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Slider Controls & Hints -->
+          <div class="flex items-center justify-center gap-4 mt-4">
+            <button @click="sliderInstance && sliderInstance.prev()" class="p-2.5 rounded-full bg-white/80 hover:bg-white text-slate-700 shadow-sm border border-slate-200 transition cursor-pointer">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+            </button>
+            <span class="text-xs font-semibold text-slate-400">Swipe or Drag</span>
+            <button @click="sliderInstance && sliderInstance.next()" class="p-2.5 rounded-full bg-white/80 hover:bg-white text-slate-700 shadow-sm border border-slate-200 transition cursor-pointer">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            </button>
+          </div>
+
+        </div>
+
+        <!-- QUICK ACCESS HUB GRID (Matching screenshot #2 bottom row) -->
+        <div class="mb-10">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-sm font-bold uppercase tracking-wider text-slate-400">Quick Access Hub</h3>
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            
+            <!-- Quick Button: Services -->
+            <div @click="navigate('services')" class="glass-card p-5 rounded-3xl hover:shadow-md transition cursor-pointer group flex flex-col justify-between">
+              <div class="w-12 h-12 rounded-2xl bg-pink-50 text-pink-500 flex items-center justify-center mb-3 group-hover:scale-105 transition">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+              </div>
+              <div>
+                <h4 class="font-bold text-slate-800 text-base">Services</h4>
+                <p class="text-xs text-slate-400 font-medium mt-0.5">Browse all services</p>
+              </div>
+            </div>
+
+            <!-- Quick Button: Transactions -->
+            <div @click="navigate('transactions')" class="glass-card p-5 rounded-3xl hover:shadow-md transition cursor-pointer group flex flex-col justify-between">
+              <div class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-500 flex items-center justify-center mb-3 group-hover:scale-105 transition">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+              </div>
+              <div>
+                <h4 class="font-bold text-slate-800 text-base">Transactions</h4>
+                <p class="text-xs text-slate-400 font-medium mt-0.5">Wallet & history</p>
+              </div>
+            </div>
+
+            <!-- Quick Button: Support -->
+            <div @click="navigate('support')" class="glass-card p-5 rounded-3xl hover:shadow-md transition cursor-pointer group flex flex-col justify-between">
+              <div class="w-12 h-12 rounded-2xl bg-purple-50 text-purple-500 flex items-center justify-center mb-3 group-hover:scale-105 transition">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+              </div>
+              <div>
+                <h4 class="font-bold text-slate-800 text-base">Support</h4>
+                <p class="text-xs text-slate-400 font-medium mt-0.5">Get 24/7 help</p>
+              </div>
+            </div>
+
+            <!-- Quick Button: Profile -->
+            <div @click="navigate('profile')" class="glass-card p-5 rounded-3xl hover:shadow-md transition cursor-pointer group flex flex-col justify-between">
+              <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-500 flex items-center justify-center mb-3 group-hover:scale-105 transition">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+              </div>
+              <div>
+                <h4 class="font-bold text-slate-800 text-base">Profile</h4>
+                <p class="text-xs text-slate-400 font-medium mt-0.5">Account settings</p>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- RECENT ACTIVITY SNAPSHOT -->
+        <div class="glass-card rounded-3xl p-6 border border-white/70">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-base font-bold text-slate-900">Recent Orders</h3>
+            <button @click="navigate('my-orders')" class="text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1">
+              View All <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            </button>
+          </div>
+
+          <div class="space-y-3">
+            <template x-for="ord in orders.slice(0, 3)" :key="ord.id">
+              <div class="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50/80 hover:bg-slate-100/80 transition border border-slate-100">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-xl bg-pink-100 text-pink-600 flex items-center justify-center font-bold text-xs">
+                    <span x-text="ord.categorySlug.toUpperCase().slice(0, 2)"></span>
+                  </div>
+                  <div>
+                    <h5 class="text-sm font-bold text-slate-800" x-text="ord.serviceName"></h5>
+                    <p class="text-xs text-slate-400 font-medium" x-text="ord.code + ' • ' + (ord.quantity >= 1000 ? (ord.quantity/1000) + 'K' : ord.quantity) + ' units'"></p>
+                  </div>
+                </div>
+                <div class="text-right">
+                  <span class="inline-block px-2.5 py-1 rounded-full text-[11px] font-bold"
+                        :class="ord.status === 'Completed' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'"
+                        x-text="ord.status"></span>
+                  <div class="text-xs font-black text-slate-800 mt-1" x-text="'₹' + ord.price"></div>
+                </div>
+              </div>
+            </template>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ============================================== -->
+      <!-- VIEW 2: NEW ORDER WIZARD (Screenshots #3 & #4) -->
+      <!-- ============================================== -->
+      <section x-show="currentView === 'new-order'" x-transition:enter="transition duration-200">
+        
+        <!-- Header & Back Button -->
+        <div class="flex items-center gap-4 mb-6">
+          <button @click="navigate('dashboard')" class="p-2.5 rounded-2xl bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 transition shadow-sm cursor-pointer">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+          </button>
+          <div>
+            <h2 class="text-2xl font-black text-slate-900 tracking-tight">New Order</h2>
+            <p class="text-xs text-slate-400 font-medium">Select a platform and customize your campaign</p>
+          </div>
+        </div>
+
+        <!-- Wizard Step Indicators (Matching screenshot #3) -->
+        <div class="glass-card rounded-3xl p-4 sm:p-5 mb-6 flex items-center justify-between sm:justify-start sm:gap-12">
+          
+          <div class="flex items-center gap-2 cursor-pointer" @click="newOrder.step = 1">
+            <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition"
+                 :class="newOrder.step === 1 ? 'bg-blue-600 text-white shadow-md shadow-blue-500/25 ring-4 ring-blue-100' : 'bg-slate-100 text-slate-600'">
+              1
+            </div>
+            <span class="text-xs sm:text-sm font-bold" :class="newOrder.step === 1 ? 'text-blue-600' : 'text-slate-500'">Select Service</span>
+          </div>
+
+          <div class="w-8 sm:w-16 h-0.5 bg-slate-200"></div>
+
+          <div class="flex items-center gap-2 cursor-pointer" @click="newOrder.step = 2">
+            <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition"
+                 :class="newOrder.step === 2 ? 'bg-blue-600 text-white shadow-md shadow-blue-500/25 ring-4 ring-blue-100' : 'bg-slate-100 text-slate-600'">
+              2
+            </div>
+            <span class="text-xs sm:text-sm font-bold" :class="newOrder.step === 2 ? 'text-blue-600' : 'text-slate-500'">Contact Info</span>
+          </div>
+
+          <div class="w-8 sm:w-16 h-0.5 bg-slate-200"></div>
+
+          <div class="flex items-center gap-2 cursor-pointer" @click="newOrder.step = 3">
+            <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition"
+                 :class="newOrder.step === 3 ? 'bg-blue-600 text-white shadow-md shadow-blue-500/25 ring-4 ring-blue-100' : 'bg-slate-100 text-slate-600'">
+              3
+            </div>
+            <span class="text-xs sm:text-sm font-bold" :class="newOrder.step === 3 ? 'text-blue-600' : 'text-slate-500'">Payment</span>
+          </div>
+
+        </div>
+
+        <!-- STEP 1: Select Service & Platform -->
+        <div x-show="newOrder.step === 1" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          
+          <!-- Platform Column (Instagram, YouTube, etc.) -->
+          <div class="glass-card rounded-3xl p-4 sm:p-5">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Choose Platform</h3>
+            <div class="space-y-2">
+              <template x-for="cat in categories" :key="cat.slug">
+                <button @click="newOrder.selectedCategory = cat.slug"
+                        class="w-full flex items-center gap-3 p-3.5 rounded-2xl text-left font-bold text-sm transition cursor-pointer"
+                        :class="newOrder.selectedCategory === cat.slug ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20' : 'bg-white hover:bg-slate-50 text-slate-700 border border-slate-100'">
+                  <span class="w-2.5 h-2.5 rounded-full" :class="newOrder.selectedCategory === cat.slug ? 'bg-white' : 'bg-blue-500'"></span>
+                  <span x-text="cat.name"></span>
+                </button>
+              </template>
+            </div>
+          </div>
+
+          <!-- Services List for selected platform -->
+          <div class="md:col-span-2 glass-card rounded-3xl p-5 sm:p-6">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h3 class="text-lg font-black text-slate-900" x-text="categories.find(c => c.slug === newOrder.selectedCategory)?.name"></h3>
+                <p class="text-xs text-slate-400 font-medium">Choose a service from the list below</p>
+              </div>
+            </div>
+
+            <div class="space-y-3">
+              <template x-for="srv in services.filter(s => s.categorySlug === newOrder.selectedCategory)" :key="srv.id">
+                <div @click="selectService(srv)"
+                     class="p-4 rounded-2xl border transition cursor-pointer flex items-center justify-between hover:border-blue-300 hover:shadow-sm"
+                     :class="newOrder.selectedServiceId === srv.id ? 'bg-blue-50/70 border-blue-400 ring-2 ring-blue-400/20' : 'bg-white border-slate-200/80'">
+                  <div class="flex items-center gap-3.5">
+                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-pink-500 to-rose-500 text-white flex items-center justify-center font-bold text-lg shadow-sm">
+                      <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+                    </div>
+                    <div>
+                      <h4 class="font-bold text-slate-900 text-sm" x-text="srv.name"></h4>
+                      <p class="text-xs text-slate-400 font-medium" x-text="srv.badge"></p>
+                    </div>
+                  </div>
+                  <div class="text-right">
+                    <span class="text-base font-extrabold text-slate-900" x-text="'₹' + srv.pricePerK"></span>
+                    <span class="text-xs font-semibold text-slate-400"> /1K</span>
+                  </div>
+                </div>
+              </template>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- STEP 2: Details & Contact (Matching screenshot #4) -->
+        <div x-show="newOrder.step === 2" class="max-w-xl mx-auto glass-card rounded-3xl p-6 sm:p-8">
+          
+          <!-- Selected Service Header Banner -->
+          <div class="p-4 rounded-2xl bg-gradient-to-r from-pink-500/10 via-rose-500/10 to-purple-500/10 border border-pink-200/50 mb-6 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-pink-500 to-rose-500 text-white flex items-center justify-center font-bold">
+                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069z"/></svg>
+              </div>
+              <div>
+                <h4 class="font-extrabold text-slate-900 text-base" x-text="getSelectedService()?.name"></h4>
+                <p class="text-xs text-slate-500 font-medium" x-text="getSelectedService()?.badge"></p>
+              </div>
+            </div>
+            <div class="text-right">
+              <div class="text-lg font-black text-slate-900" x-text="'₹' + getSelectedService()?.pricePerK + ' /1K'"></div>
+              <span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700">⚡ Fast Delivery</span>
+            </div>
+          </div>
+
+          <!-- Quantity Stepper -->
+          <div class="mb-5">
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Quantity</label>
+            <div class="flex items-center gap-3">
+              <button @click="decrementQty(500)" class="w-12 h-12 rounded-2xl bg-white border border-slate-200 text-slate-700 font-bold text-lg hover:bg-slate-50 transition active:scale-95 shadow-sm">-</button>
+              <input type="number" x-model.number="newOrder.quantity" class="flex-1 h-12 rounded-2xl bg-white border border-slate-200 text-center font-black text-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              <button @click="incrementQty(500)" class="w-12 h-12 rounded-2xl bg-white border border-slate-200 text-slate-700 font-bold text-lg hover:bg-slate-50 transition active:scale-95 shadow-sm">+</button>
+            </div>
+            <div class="flex items-center justify-between text-xs text-slate-400 font-medium mt-1.5 px-1">
+              <span>Min: <span x-text="getSelectedService()?.minQty"></span></span>
+              <span>Max: <span x-text="getSelectedService()?.maxQty"></span></span>
+            </div>
+          </div>
+
+          <!-- Target Link -->
+          <div class="mb-6">
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Target URL / Account Link</label>
+            <input type="url" x-model="newOrder.link" placeholder="https://instagram.com/yourusername" class="w-full px-4 py-3 rounded-2xl bg-white border border-slate-200 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm" />
+            <p class="text-xs text-slate-400 font-medium mt-1">Make sure the account or post is set to public.</p>
+          </div>
+
+          <!-- Total Price Banner -->
+          <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 mb-6 flex items-center justify-between">
+            <span class="text-sm font-bold text-slate-500">Total Price</span>
+            <span class="text-2xl font-black text-blue-600" x-text="'₹' + calculateTotalPrice()"></span>
+          </div>
+
+          <!-- Place Order Button -->
+          <button @click="placeOrder()" 
+                  class="w-full py-4 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-black text-base hover:from-blue-700 hover:to-indigo-700 transition shadow-xl shadow-blue-500/25 active:scale-[0.98] cursor-pointer flex items-center justify-center gap-2">
+            <span>Place Order</span>
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+          </button>
+
+        </div>
+
+      </section>
+
+      <!-- ============================================== -->
+      <!-- VIEW 3: ADD FUNDS (Screenshot #4 Middle)       -->
+      <!-- ============================================== -->
+      <section x-show="currentView === 'add-funds'" x-transition:enter="transition duration-200">
+        
+        <div class="flex items-center gap-4 mb-6">
+          <button @click="navigate('dashboard')" class="p-2.5 rounded-2xl bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 transition shadow-sm cursor-pointer">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+          </button>
+          <div>
+            <h2 class="text-2xl font-black text-slate-900 tracking-tight">Add Funds</h2>
+            <p class="text-xs text-slate-400 font-medium">Top up your balance instantly via Razorpay</p>
+          </div>
+        </div>
+
+        <div class="max-w-md mx-auto glass-card rounded-3xl p-6 sm:p-8">
+          
+          <!-- Current Balance Display -->
+          <div class="p-5 rounded-2xl bg-gradient-to-br from-blue-500/10 via-indigo-500/10 to-transparent border border-blue-200/60 mb-6 flex items-center justify-between">
+            <div>
+              <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Current Balance</span>
+              <div class="text-3xl font-black text-slate-900 mt-0.5" x-text="'₹' + Number(user.balance).toFixed(2)"></div>
+            </div>
+            <div class="w-12 h-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center shadow-md shadow-blue-500/25">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+            </div>
+          </div>
+
+          <!-- Select Amount Presets (Matching screenshot #4) -->
+          <div class="mb-6">
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2.5">Select Amount</label>
+            <div class="grid grid-cols-3 gap-2.5">
+              <button @click="setAddFundsPreset(100)" class="py-3 rounded-2xl font-bold text-sm transition cursor-pointer border"
+                      :class="addFunds.amount === 100 && !addFunds.customAmount ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-500/25' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'">
+                ₹100
+              </button>
+              <button @click="setAddFundsPreset(200)" class="py-3 rounded-2xl font-bold text-sm transition cursor-pointer border"
+                      :class="addFunds.amount === 200 && !addFunds.customAmount ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-500/25' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'">
+                ₹200
+              </button>
+              <button @click="setAddFundsPreset(500)" class="py-3 rounded-2xl font-bold text-sm transition cursor-pointer border"
+                      :class="addFunds.amount === 500 && !addFunds.customAmount ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-500/25' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'">
+                ₹500
+              </button>
+              <button @click="setAddFundsPreset(1000)" class="py-3 rounded-2xl font-bold text-sm transition cursor-pointer border"
+                      :class="addFunds.amount === 1000 && !addFunds.customAmount ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-500/25' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'">
+                ₹1,000
+              </button>
+              <button @click="setAddFundsPreset(2000)" class="py-3 rounded-2xl font-bold text-sm transition cursor-pointer border"
+                      :class="addFunds.amount === 2000 && !addFunds.customAmount ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-500/25' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'">
+                ₹2,000
+              </button>
+              <button @click="addFunds.customAmount = '3000'" class="py-3 rounded-2xl font-bold text-sm transition cursor-pointer border"
+                      :class="addFunds.customAmount ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-500/25' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'">
+                Other
+              </button>
+            </div>
+            
+            <template x-if="addFunds.customAmount !== ''">
+              <div class="mt-3">
+                <input type="number" x-model="addFunds.customAmount" placeholder="Enter custom amount (₹)" class="w-full px-4 py-2.5 rounded-2xl bg-white border border-slate-200 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+            </template>
+          </div>
+
+          <!-- Payment Gateway Selection -->
+          <div class="mb-6">
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Payment Method</label>
+            <div class="p-4 rounded-2xl bg-white border border-slate-200 flex items-center justify-between shadow-sm cursor-pointer hover:border-blue-300">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-black text-xs">
+                  RZP
+                </div>
+                <div>
+                  <h5 class="text-sm font-bold text-slate-900">Razorpay</h5>
+                  <p class="text-xs text-slate-400 font-medium">Secure & Fast UPI / Cards</p>
+                </div>
+              </div>
+              <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            </div>
+          </div>
+
+          <!-- Pay Now Action -->
+          <button @click="processDeposit()" 
+                  :disabled="addFunds.isProcessing"
+                  class="w-full py-4 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-black text-base hover:from-blue-700 hover:to-indigo-700 transition shadow-xl shadow-blue-500/25 active:scale-[0.98] cursor-pointer flex items-center justify-center gap-2">
+            <span x-text="addFunds.isProcessing ? 'Processing Payment...' : 'Pay Now ₹' + (addFunds.customAmount || addFunds.amount) + ' →'"></span>
+          </button>
+
+          <p class="text-center text-xs text-slate-400 font-medium mt-4 flex items-center justify-center gap-1.5">
+            <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+            Your payment is secure and encrypted
+          </p>
+
+        </div>
+
+      </section>
+
+      <!-- ============================================== -->
+      <!-- VIEW 4: MY ORDERS (Screenshot #5)              -->
+      <!-- ============================================== -->
+      <section x-show="currentView === 'my-orders'" x-transition:enter="transition duration-200">
+        
+        <div class="flex items-center gap-4 mb-6">
+          <button @click="navigate('dashboard')" class="p-2.5 rounded-2xl bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 transition shadow-sm cursor-pointer">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+          </button>
+          <div>
+            <h2 class="text-2xl font-black text-slate-900 tracking-tight">My Orders</h2>
+            <p class="text-xs text-slate-400 font-medium">Real-time status tracking for all campaigns</p>
+          </div>
+        </div>
+
+        <div class="glass-card rounded-3xl p-5 sm:p-7">
+          
+          <!-- Filter Tabs (Matching screenshot #5) -->
+          <div class="flex items-center gap-2 mb-6 overflow-x-auto pb-2">
+            <template x-for="st in ['All', 'Processing', 'Completed', 'Cancelled']" :key="st">
+              <button @click="orderFilter = st"
+                      class="px-4 py-2 rounded-2xl font-bold text-xs sm:text-sm transition cursor-pointer whitespace-nowrap"
+                      :class="orderFilter === st ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'">
+                <span x-text="st"></span>
+              </button>
+            </template>
+          </div>
+
+          <!-- Orders List -->
+          <div class="space-y-3">
+            <template x-for="ord in filteredOrders()" :key="ord.id">
+              <div class="p-4 rounded-2xl bg-white border border-slate-200/80 hover:shadow-sm transition flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div class="flex items-center gap-3.5">
+                  <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-pink-500 to-rose-500 text-white flex items-center justify-center font-bold text-sm shadow-sm flex-shrink-0">
+                    <span x-text="ord.categorySlug.toUpperCase().slice(0, 2)"></span>
+                  </div>
+                  <div>
+                    <h4 class="font-extrabold text-slate-900 text-sm sm:text-base" x-text="ord.serviceName"></h4>
+                    <p class="text-xs text-slate-400 font-medium mt-0.5">
+                      <span class="font-semibold text-slate-600" x-text="(ord.quantity >= 1000 ? (ord.quantity/1000) + 'K' : ord.quantity) + ' • ₹' + ord.price"></span>
+                      <span class="mx-1.5 text-slate-300">|</span>
+                      <span x-text="ord.date"></span>
+                    </p>
+                  </div>
+                </div>
+
+                <div class="flex items-center justify-between sm:justify-end gap-3 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
+                  <span class="text-xs font-mono font-bold text-slate-400" x-text="ord.code"></span>
+                  <span class="px-3 py-1 rounded-full text-xs font-bold"
+                        :class="ord.status === 'Completed' ? 'bg-emerald-100 text-emerald-700' : (ord.status === 'Processing' ? 'bg-amber-100 text-amber-700' : 'bg-rose-100 text-rose-700')"
+                        x-text="ord.status"></span>
+                  <svg class="w-5 h-5 text-slate-400 hidden sm:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                </div>
+              </div>
+            </template>
+
+            <template x-if="filteredOrders().length === 0">
+              <div class="py-12 text-center text-slate-400">
+                <p class="text-sm font-semibold">No orders found in this category.</p>
+              </div>
+            </template>
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- ============================================== -->
+      <!-- VIEW 5: SERVICES (Screenshot #6)               -->
+      <!-- ============================================== -->
+      <section x-show="currentView === 'services'" x-transition:enter="transition duration-200">
+        
+        <div class="flex items-center gap-4 mb-6">
+          <button @click="navigate('dashboard')" class="p-2.5 rounded-2xl bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 transition shadow-sm cursor-pointer">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+          </button>
+          <div class="flex-1">
+            <h2 class="text-2xl font-black text-slate-900 tracking-tight">All Services</h2>
+            <p class="text-xs text-slate-400 font-medium">Top-tier verified social media growth tools</p>
+          </div>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="mb-6 relative">
+          <input type="text" x-model="serviceSearch" placeholder="Search services..." class="w-full px-5 py-3.5 pl-12 rounded-2xl bg-white border border-slate-200 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm" />
+          <svg class="w-5 h-5 text-slate-400 absolute left-4 top-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        </div>
+
+        <!-- Category Tabs -->
+        <div class="flex items-center gap-2 mb-6 overflow-x-auto pb-2">
+          <button @click="serviceCategoryFilter = ''" 
+                  class="px-4 py-2 rounded-2xl font-bold text-xs sm:text-sm transition cursor-pointer"
+                  :class="serviceCategoryFilter === '' ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20' : 'bg-white text-slate-600 border border-slate-200'">
+            All
+          </button>
+          <template x-for="cat in categories" :key="cat.slug">
+            <button @click="serviceCategoryFilter = cat.slug"
+                    class="px-4 py-2 rounded-2xl font-bold text-xs sm:text-sm transition cursor-pointer whitespace-nowrap"
+                    :class="serviceCategoryFilter === cat.slug ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20' : 'bg-white text-slate-600 border border-slate-200'">
+              <span x-text="cat.name"></span>
+            </button>
+          </template>
+        </div>
+
+        <!-- Service Cards Grid (Matching screenshot #6) -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+          <template x-for="srv in filteredServices()" :key="srv.id">
+            <div @click="selectService(srv); navigate('new-order');"
+                 class="glass-card rounded-3xl p-5 hover:shadow-lg transition cursor-pointer flex flex-col justify-between group">
+              <div>
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-pink-500 to-rose-500 text-white flex items-center justify-center mb-3 shadow-md group-hover:scale-105 transition">
+                  <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                </div>
+                <h4 class="font-bold text-slate-900 text-sm group-hover:text-blue-600 transition" x-text="srv.name"></h4>
+                <p class="text-xs text-slate-400 font-medium mt-1 line-clamp-2" x-text="srv.badge"></p>
+              </div>
+              <div class="pt-4 border-t border-slate-100 flex items-center justify-between mt-3">
+                <span class="text-base font-black text-slate-900" x-text="'₹' + srv.pricePerK"></span>
+                <span class="text-xs font-semibold text-slate-400">/1K</span>
+              </div>
+            </div>
+          </template>
+        </div>
+
+        <!-- Promotional Banner (Matching screenshot #6 bottom) -->
+        <div class="p-6 rounded-3xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white flex items-center justify-between shadow-xl shadow-blue-500/20">
+          <div class="flex items-center gap-3">
+            <span class="text-2xl">👑</span>
+            <div>
+              <h4 class="font-extrabold text-base">Premium Quality Services</h4>
+              <p class="text-xs text-blue-100 font-medium">Boost your social media presence today with fast delivery & non-drop guarantees!</p>
+            </div>
+          </div>
+          <button @click="navigate('new-order')" class="px-5 py-2.5 rounded-xl bg-white text-blue-700 font-extrabold text-xs hover:bg-blue-50 transition cursor-pointer">
+            Order Now →
+          </button>
+        </div>
+
+      </section>
+
+      <!-- ============================================== -->
+      <!-- VIEW 6: TRANSACTIONS (Screenshot #7)           -->
+      <!-- ============================================== -->
+      <section x-show="currentView === 'transactions'" x-transition:enter="transition duration-200">
+        
+        <div class="flex items-center gap-4 mb-6">
+          <button @click="navigate('dashboard')" class="p-2.5 rounded-2xl bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 transition shadow-sm cursor-pointer">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+          </button>
+          <div>
+            <h2 class="text-2xl font-black text-slate-900 tracking-tight">Transactions</h2>
+            <p class="text-xs text-slate-400 font-medium">All deposit and expenditure activity</p>
+          </div>
+        </div>
+
+        <div class="glass-card rounded-3xl p-5 sm:p-7">
+          
+          <!-- Filter Tabs (Matching screenshot #7) -->
+          <div class="flex items-center gap-2 mb-6 overflow-x-auto pb-2">
+            <template x-for="flt in ['All', 'Add Funds', 'Orders', 'Refunds']" :key="flt">
+              <button @click="txnFilter = flt"
+                      class="px-4 py-2 rounded-2xl font-bold text-xs sm:text-sm transition cursor-pointer whitespace-nowrap"
+                      :class="txnFilter === flt ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'">
+                <span x-text="flt"></span>
+              </button>
+            </template>
+          </div>
+
+          <!-- Transaction Items -->
+          <div class="space-y-3">
+            <template x-for="txn in filteredTransactions()" :key="txn.id">
+              <div class="p-4 rounded-2xl bg-white border border-slate-200/80 hover:shadow-sm transition flex items-center justify-between">
+                <div class="flex items-center gap-3.5">
+                  <div class="w-11 h-11 rounded-2xl flex items-center justify-center font-bold text-sm shadow-sm"
+                       :class="txn.type === 'deposit' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'">
+                    <template x-if="txn.type === 'deposit'">
+                      <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                    </template>
+                    <template x-if="txn.type !== 'deposit'">
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+                    </template>
+                  </div>
+                  <div>
+                    <h4 class="font-extrabold text-slate-900 text-sm" x-text="txn.title"></h4>
+                    <p class="text-xs text-slate-400 font-medium" x-text="txn.gateway + ' • ' + txn.date"></p>
+                  </div>
+                </div>
+
+                <div class="text-right">
+                  <span class="text-base font-black"
+                        :class="txn.type === 'deposit' ? 'text-emerald-600' : 'text-rose-600'"
+                        x-text="(txn.type === 'deposit' ? '+ ₹' : '- ₹') + txn.amount"></span>
+                  <div class="text-[11px] font-semibold text-slate-400 mt-0.5" x-text="txn.code"></div>
+                </div>
+              </div>
+            </template>
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- ============================================== -->
+      <!-- VIEW 7: SUPPORT TICKETS (Screenshot #8)        -->
+      <!-- ============================================== -->
+      <section x-show="currentView === 'support'" x-transition:enter="transition duration-200">
+        
+        <div class="flex items-center justify-between mb-6">
+          <div class="flex items-center gap-4">
+            <button @click="navigate('dashboard')" class="p-2.5 rounded-2xl bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 transition shadow-sm cursor-pointer">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+            </button>
+            <div>
+              <h2 class="text-2xl font-black text-slate-900 tracking-tight">Support</h2>
+              <p class="text-xs text-slate-400 font-medium">We're here 24/7 to assist with your orders</p>
+            </div>
+          </div>
+          
+          <button @click="showNewTicketModal = true" class="px-4 py-2.5 rounded-2xl bg-blue-600 text-white font-bold text-xs sm:text-sm hover:bg-blue-700 transition shadow-md shadow-blue-500/25 cursor-pointer">
+            + Create Ticket
+          </button>
+        </div>
+
+        <div class="glass-card rounded-3xl p-5 sm:p-7">
+          
+          <!-- Filter Tabs (Matching screenshot #8) -->
+          <div class="flex items-center gap-2 mb-6 overflow-x-auto pb-2">
+            <template x-for="st in ['All', 'Open', 'In Progress', 'Closed']" :key="st">
+              <button @click="ticketFilter = st"
+                      class="px-4 py-2 rounded-2xl font-bold text-xs sm:text-sm transition cursor-pointer whitespace-nowrap"
+                      :class="ticketFilter === st ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'">
+                <span x-text="st"></span>
+              </button>
+            </template>
+          </div>
+
+          <!-- Ticket List -->
+          <div class="space-y-3">
+            <template x-for="tkt in filteredTickets()" :key="tkt.id">
+              <div @click="openTicket(tkt)" class="p-4 rounded-2xl bg-white border border-slate-200/80 hover:shadow-sm transition cursor-pointer flex items-center justify-between">
+                <div>
+                  <div class="flex items-center gap-2 mb-1">
+                    <span class="text-xs font-mono font-bold text-slate-400" x-text="tkt.code"></span>
+                    <h4 class="font-extrabold text-slate-900 text-sm sm:text-base" x-text="tkt.subject"></h4>
+                  </div>
+                  <p class="text-xs text-slate-400 font-medium" x-text="tkt.date"></p>
+                </div>
+
+                <div class="flex items-center gap-3">
+                  <span class="px-3 py-1 rounded-full text-xs font-bold"
+                        :class="tkt.status === 'Open' ? 'bg-amber-100 text-amber-700' : (tkt.status === 'In Progress' ? 'bg-blue-100 text-blue-700' : 'bg-emerald-100 text-emerald-700')"
+                        x-text="tkt.status"></span>
+                  <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                </div>
+              </div>
+            </template>
+          </div>
+
+        </div>
+
+        <!-- View Ticket Modal / Conversation -->
+        <div x-show="activeTicket !== null" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4" style="display: none;">
+          <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border max-h-[85vh] flex flex-col">
+            <div class="flex items-center justify-between pb-4 border-b">
+              <div>
+                <span class="text-xs font-mono font-bold text-slate-400" x-text="activeTicket?.code"></span>
+                <h3 class="font-extrabold text-slate-900 text-lg" x-text="activeTicket?.subject"></h3>
+              </div>
+              <button @click="activeTicket = null" class="p-2 rounded-xl text-slate-400 hover:bg-slate-100">✕</button>
+            </div>
+
+            <!-- Messages list -->
+            <div class="flex-1 overflow-y-auto py-4 space-y-3">
+              <template x-for="msg in activeTicket?.messages" :key="msg.text + msg.time">
+                <div class="p-3.5 rounded-2xl" :class="msg.sender === 'user' ? 'bg-blue-50 ml-6 text-blue-900 border border-blue-100' : 'bg-slate-50 mr-6 text-slate-800 border border-slate-200'">
+                  <div class="flex items-center justify-between text-xs font-bold mb-1 opacity-70">
+                    <span x-text="msg.name"></span>
+                    <span x-text="msg.time"></span>
+                  </div>
+                  <p class="text-sm font-medium" x-text="msg.text"></p>
+                </div>
+              </template>
+            </div>
+
+            <!-- Reply Box -->
+            <div class="pt-3 border-t flex gap-2">
+              <input type="text" x-model="ticketReplyText" placeholder="Write a reply..." class="flex-1 px-4 py-2.5 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" @keydown.enter="sendTicketReply()" />
+              <button @click="sendTicketReply()" class="px-4 py-2.5 rounded-xl bg-blue-600 text-white font-bold text-sm hover:bg-blue-700">Reply</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- New Ticket Modal -->
+        <div x-show="showNewTicketModal" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4" style="display: none;">
+          <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="font-extrabold text-slate-900 text-lg">Create Support Ticket</h3>
+              <button @click="showNewTicketModal = false" class="p-2 rounded-xl text-slate-400 hover:bg-slate-100">✕</button>
+            </div>
+            
+            <div class="space-y-4">
+              <div>
+                <label class="block text-xs font-bold uppercase text-slate-400 mb-1">Subject</label>
+                <input type="text" x-model="newTicket.subject" placeholder="e.g. Order not started yet" class="w-full px-4 py-2.5 rounded-xl border text-sm" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold uppercase text-slate-400 mb-1">Message</label>
+                <textarea x-model="newTicket.message" rows="4" placeholder="Describe the issue in detail..." class="w-full px-4 py-2.5 rounded-xl border text-sm"></textarea>
+              </div>
+              <button @click="createTicket()" class="w-full py-3 rounded-xl bg-blue-600 text-white font-bold text-sm hover:bg-blue-700 transition">Submit Ticket</button>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ============================================== -->
+      <!-- VIEW 8: PROFILE / SETTINGS (Screenshot #9)     -->
+      <!-- ============================================== -->
+      <section x-show="currentView === 'profile'" x-transition:enter="transition duration-200">
+        
+        <div class="flex items-center gap-4 mb-6">
+          <button @click="navigate('dashboard')" class="p-2.5 rounded-2xl bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 transition shadow-sm cursor-pointer">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+          </button>
+          <div>
+            <h2 class="text-2xl font-black text-slate-900 tracking-tight">Account Settings</h2>
+            <p class="text-xs text-slate-400 font-medium">Manage your personal credentials & preferences</p>
+          </div>
+        </div>
+
+        <div class="max-w-2xl mx-auto glass-card rounded-3xl p-6 sm:p-8">
+          
+          <!-- Avatar & Header info (Matching screenshot #9) -->
+          <div class="flex items-center gap-4 p-5 rounded-2xl bg-slate-50 border border-slate-200 mb-6">
+            <div class="w-16 h-16 rounded-full bg-blue-600 text-white font-black text-xl flex items-center justify-center ring-4 ring-blue-100 shadow-md">
+              <span x-text="user.name.charAt(0)"></span>
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h3 class="text-lg font-black text-slate-900" x-text="user.name"></h3>
+                <span class="px-2 py-0.5 rounded-md text-[11px] font-bold bg-emerald-100 text-emerald-700">Verified</span>
+              </div>
+              <p class="text-xs text-slate-400 font-semibold" x-text="'User ID: #' + user.id + ' • Joined ' + user.joined"></p>
+            </div>
+          </div>
+
+          <!-- Edit Profile Form -->
+          <div class="space-y-4 mb-8">
+            <h4 class="text-sm font-bold uppercase text-slate-400 tracking-wider">Account Information</h4>
+            <div>
+              <label class="block text-xs font-bold text-slate-500 mb-1">Full Name</label>
+              <input type="text" x-model="profileForm.name" class="w-full px-4 py-2.5 rounded-2xl border text-sm bg-white" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-500 mb-1">Email Address</label>
+              <input type="email" :value="user.email" disabled class="w-full px-4 py-2.5 rounded-2xl border text-sm bg-slate-100 text-slate-500 cursor-not-allowed" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-500 mb-1">Phone Number</label>
+              <input type="text" x-model="profileForm.phone" class="w-full px-4 py-2.5 rounded-2xl border text-sm bg-white" />
+            </div>
+            <button @click="updateProfile()" class="px-6 py-2.5 rounded-2xl bg-blue-600 text-white font-bold text-sm hover:bg-blue-700 transition shadow-md shadow-blue-500/20">
+              Save Changes
+            </button>
+          </div>
+
+          <!-- Password Change Form -->
+          <div class="space-y-4 pt-6 border-t border-slate-200">
+            <h4 class="text-sm font-bold uppercase text-slate-400 tracking-wider">Change Password</h4>
+            <div>
+              <label class="block text-xs font-bold text-slate-500 mb-1">Current Password</label>
+              <input type="password" x-model="passwordForm.current" class="w-full px-4 py-2.5 rounded-2xl border text-sm bg-white" />
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-bold text-slate-500 mb-1">New Password</label>
+                <input type="password" x-model="passwordForm.new" class="w-full px-4 py-2.5 rounded-2xl border text-sm bg-white" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-500 mb-1">Confirm New Password</label>
+                <input type="password" x-model="passwordForm.confirm" class="w-full px-4 py-2.5 rounded-2xl border text-sm bg-white" />
+              </div>
+            </div>
+            <button @click="updatePassword()" class="px-6 py-2.5 rounded-2xl bg-slate-800 text-white font-bold text-sm hover:bg-slate-900 transition">
+              Update Password
+            </button>
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- ============================================== -->
+      <!-- VIEW 9: LOGIN & REGISTER (Screenshot #1)       -->
+      <!-- ============================================== -->
+      <section x-show="currentView === 'auth'" x-transition:enter="transition duration-200">
+        
+        <div class="max-w-4xl mx-auto glass-card rounded-3xl overflow-hidden shadow-2xl border grid grid-cols-1 md:grid-cols-2 min-h-[540px]">
+          
+          <!-- Left Banner (Deep Blue Gradient with 3D Social Badges) -->
+          <div class="p-8 sm:p-10 bg-gradient-to-br from-blue-700 via-indigo-800 to-slate-900 text-white flex flex-col justify-between relative overflow-hidden">
+            <!-- Background Glows -->
+            <div class="absolute -top-12 -left-12 w-48 h-48 bg-blue-500/30 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute -bottom-12 -right-12 w-48 h-48 bg-indigo-500/30 rounded-full blur-3xl pointer-events-none"></div>
+
+            <div>
+              <div class="flex items-center gap-3 mb-8">
+                <div class="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center">
+                  <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M4 19h4v-7H4v7zm6 0h4v-12h-4v12zm6-16v16h4V3h-4z"/></svg>
+                </div>
+                <h3 class="font-extrabold text-xl">SMM Panel</h3>
+              </div>
+
+              <h2 class="text-3xl font-black tracking-tight leading-tight mb-2">More Followers.<br>More Engagement.<br>More Success.</h2>
+              <p class="text-blue-200 text-sm font-medium">The world's leading social media growth provider.</p>
+            </div>
+
+            <!-- Floating Social Brand Icons -->
+            <div class="grid grid-cols-3 gap-3 my-6">
+              <div class="p-3 rounded-2xl bg-white/10 backdrop-blur-md flex items-center justify-center text-white border border-white/10 shadow-sm font-bold text-xs">Instagram</div>
+              <div class="p-3 rounded-2xl bg-white/10 backdrop-blur-md flex items-center justify-center text-white border border-white/10 shadow-sm font-bold text-xs">YouTube</div>
+              <div class="p-3 rounded-2xl bg-white/10 backdrop-blur-md flex items-center justify-center text-white border border-white/10 shadow-sm font-bold text-xs">Telegram</div>
+              <div class="p-3 rounded-2xl bg-white/10 backdrop-blur-md flex items-center justify-center text-white border border-white/10 shadow-sm font-bold text-xs">TikTok</div>
+              <div class="p-3 rounded-2xl bg-white/10 backdrop-blur-md flex items-center justify-center text-white border border-white/10 shadow-sm font-bold text-xs">Facebook</div>
+              <div class="p-3 rounded-2xl bg-white/10 backdrop-blur-md flex items-center justify-center text-white border border-white/10 shadow-sm font-bold text-xs">Twitter (X)</div>
+            </div>
+
+            <div class="text-xs text-blue-200 font-medium">
+              Join 50,000+ creators, brands, and agencies boosting engagement daily.
+            </div>
+          </div>
+
+          <!-- Right: Auth Form (Matching screenshot #1) -->
+          <div class="p-8 sm:p-10 bg-white flex flex-col justify-between">
+            <div>
+              <!-- Toggle Tabs -->
+              <div class="flex items-center p-1 bg-slate-100 rounded-2xl mb-6">
+                <button @click="authTab = 'login'" class="flex-1 py-2 rounded-xl text-xs sm:text-sm font-bold transition"
+                        :class="authTab === 'login' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-900'">
+                  Login
+                </button>
+                <button @click="authTab = 'register'" class="flex-1 py-2 rounded-xl text-xs sm:text-sm font-bold transition"
+                        :class="authTab === 'register' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-900'">
+                  Register
+                </button>
+              </div>
+
+              <h3 class="text-xl font-black text-slate-900 mb-1" x-text="authTab === 'login' ? 'Welcome Back!' : 'Create an Account'"></h3>
+              <p class="text-xs text-slate-400 font-medium mb-6" x-text="authTab === 'login' ? 'Sign in to your account to continue.' : 'Start boosting your social media in seconds.'"></p>
+
+              <!-- Form Inputs -->
+              <div class="space-y-4">
+                <template x-if="authTab === 'register'">
+                  <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-1">Full Name</label>
+                    <input type="text" x-model="authForm.name" placeholder="Aaris Ali" class="w-full px-4 py-2.5 rounded-2xl border text-sm" />
+                  </div>
+                </template>
+
+                <div>
+                  <label class="block text-xs font-bold text-slate-500 mb-1">Email Address</label>
+                  <input type="email" x-model="authForm.email" placeholder="aarisali@gmail.com" class="w-full px-4 py-2.5 rounded-2xl border text-sm" />
+                </div>
+
+                <div>
+                  <label class="block text-xs font-bold text-slate-500 mb-1">Password</label>
+                  <input type="password" x-model="authForm.password" placeholder="••••••••" class="w-full px-4 py-2.5 rounded-2xl border text-sm" />
+                </div>
+
+                <template x-if="authTab === 'login'">
+                  <div class="flex items-center justify-between text-xs">
+                    <label class="flex items-center gap-2 cursor-pointer text-slate-600 font-medium">
+                      <input type="checkbox" x-model="authForm.rememberMe" class="rounded text-blue-600" />
+                      Remember Me
+                    </label>
+                    <a href="#" class="font-bold text-blue-600 hover:underline">Forgot Password?</a>
+                  </div>
+                </template>
+              </div>
+
+              <!-- Submit Button -->
+              <button @click="authTab === 'login' ? loginUser() : registerUser()" 
+                      class="w-full mt-6 py-3.5 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-black text-sm hover:from-blue-700 hover:to-indigo-700 transition shadow-lg shadow-blue-500/25 cursor-pointer">
+                <span x-text="authTab === 'login' ? 'Login →' : 'Register →'"></span>
+              </button>
+
+              <div class="mt-4 p-3 rounded-xl bg-blue-50 border border-blue-100 text-[11px] text-blue-700">
+                <strong>Admin Demo Access:</strong> Use <span class="font-mono">admin@smmpanel.local</span> with any password to open Admin Dashboard.
+              </div>
+            </div>
+
+            <div class="text-center text-xs text-slate-400 font-medium pt-4">
+              <span x-text="authTab === 'login' ? 'Don\'t have an account? ' : 'Already have an account? '"></span>
+              <button @click="authTab = authTab === 'login' ? 'register' : 'login'" class="font-bold text-blue-600 hover:underline">
+                <span x-text="authTab === 'login' ? 'Register' : 'Login'"></span>
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- ============================================== -->
+      <!-- VIEW 10: ADMIN PORTAL (Section 4 Requirements) -->
+      <!-- ============================================== -->
+      <section x-show="currentView === 'admin'" x-transition:enter="transition duration-200">
+        
+        <!-- Admin Header -->
+        <div class="flex items-center justify-between mb-6">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-2xl bg-purple-600 text-white flex items-center justify-center font-bold">
+              ADM
+            </div>
+            <div>
+              <h2 class="text-2xl font-black text-slate-900 tracking-tight">Admin Console</h2>
+              <p class="text-xs text-slate-400 font-medium">Full management over users, orders, services & settings</p>
+            </div>
+          </div>
+          <button @click="navigate('dashboard')" class="px-4 py-2 rounded-2xl bg-white border text-slate-700 font-bold text-xs hover:bg-slate-50 transition">
+            ← Back to User View
+          </button>
+        </div>
+
+        <!-- Admin Tabs -->
+        <div class="flex items-center gap-2 mb-6 overflow-x-auto pb-2">
+          <template x-for="tab in ['dashboard', 'users', 'orders', 'services', 'payments', 'settings']" :key="tab">
+            <button @click="adminTab = tab"
+                    class="px-4 py-2 rounded-2xl font-bold text-xs sm:text-sm capitalize transition cursor-pointer whitespace-nowrap"
+                    :class="adminTab === tab ? 'bg-purple-600 text-white shadow-md shadow-purple-500/20' : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'">
+              <span x-text="tab"></span>
+            </button>
+          </template>
+        </div>
+
+        <!-- ADMIN TAB: Dashboard -->
+        <div x-show="adminTab === 'dashboard'">
+          <div class="grid grid-cols-2 sm:grid-cols-5 gap-4 mb-6">
+            <div class="glass-card p-5 rounded-3xl">
+              <span class="text-xs font-bold text-slate-400 uppercase">Total Users</span>
+              <div class="text-2xl font-black text-slate-900 mt-1" x-text="adminStats.totalUsers"></div>
+            </div>
+            <div class="glass-card p-5 rounded-3xl">
+              <span class="text-xs font-bold text-slate-400 uppercase">Total Orders</span>
+              <div class="text-2xl font-black text-slate-900 mt-1" x-text="adminStats.totalOrders"></div>
+            </div>
+            <div class="glass-card p-5 rounded-3xl">
+              <span class="text-xs font-bold text-amber-500 uppercase">Pending Orders</span>
+              <div class="text-2xl font-black text-amber-600 mt-1" x-text="adminStats.pendingOrders"></div>
+            </div>
+            <div class="glass-card p-5 rounded-3xl">
+              <span class="text-xs font-bold text-emerald-500 uppercase">Completed</span>
+              <div class="text-2xl font-black text-emerald-600 mt-1" x-text="adminStats.completedOrders"></div>
+            </div>
+            <div class="glass-card p-5 rounded-3xl col-span-2 sm:col-span-1">
+              <span class="text-xs font-bold text-blue-500 uppercase">Total Revenue</span>
+              <div class="text-2xl font-black text-blue-600 mt-1" x-text="'₹' + Number(adminStats.revenue).toLocaleString()"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ADMIN TAB: Users -->
+        <div x-show="adminTab === 'users'" class="glass-card rounded-3xl p-6">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-black text-slate-900">Manage Users</h3>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm">
+              <thead class="text-xs uppercase text-slate-400 border-b border-slate-100">
+                <tr>
+                  <th class="pb-3">User</th>
+                  <th class="pb-3">Balance</th>
+                  <th class="pb-3">Orders</th>
+                  <th class="pb-3">Status</th>
+                  <th class="pb-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                <template x-for="u in adminUsers" :key="u.id">
+                  <tr>
+                    <td class="py-3">
+                      <div class="font-bold text-slate-900" x-text="u.name"></div>
+                      <div class="text-xs text-slate-400 font-mono" x-text="'#' + u.id + ' • ' + u.email"></div>
+                    </td>
+                    <td class="py-3 font-bold text-slate-800" x-text="'₹' + Number(u.balance).toFixed(2)"></td>
+                    <td class="py-3 text-slate-600" x-text="u.orders"></td>
+                    <td class="py-3">
+                      <span class="px-2.5 py-1 rounded-full text-xs font-bold"
+                            :class="u.status === 'active' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'"
+                            x-text="u.status"></span>
+                    </td>
+                    <td class="py-3 text-right space-x-2">
+                      <button @click="openAdjustBalance(u)" class="px-2.5 py-1 rounded-xl bg-blue-50 text-blue-600 font-bold text-xs hover:bg-blue-100">Adjust Bal</button>
+                      <button @click="toggleUserStatus(u)" class="px-2.5 py-1 rounded-xl bg-slate-100 text-slate-700 font-bold text-xs hover:bg-slate-200" x-text="u.status === 'active' ? 'Disable' : 'Enable'"></button>
+                    </td>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Adjust Balance Modal -->
+          <div x-show="selectedAdminUser !== null" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4" style="display: none;">
+            <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border">
+              <h3 class="font-bold text-lg text-slate-900 mb-1">Adjust Balance</h3>
+              <p class="text-xs text-slate-400 mb-4" x-text="'For user ' + selectedAdminUser?.name"></p>
+              <div class="space-y-3">
+                <div class="flex gap-2">
+                  <button @click="balanceAdjust.operation = 'add'" class="flex-1 py-2 rounded-xl text-xs font-bold border" :class="balanceAdjust.operation === 'add' ? 'bg-emerald-600 text-white' : 'bg-slate-50'">+ Add</button>
+                  <button @click="balanceAdjust.operation = 'subtract'" class="flex-1 py-2 rounded-xl text-xs font-bold border" :class="balanceAdjust.operation === 'subtract' ? 'bg-rose-600 text-white' : 'bg-slate-50'">- Subtract</button>
+                </div>
+                <input type="number" x-model.number="balanceAdjust.amount" placeholder="Amount (₹)" class="w-full px-4 py-2.5 rounded-xl border text-sm" />
+                <button @click="submitBalanceAdjust()" class="w-full py-2.5 rounded-xl bg-purple-600 text-white font-bold text-sm">Save Adjustment</button>
+                <button @click="selectedAdminUser = null" class="w-full py-2 rounded-xl text-slate-500 font-semibold text-xs">Cancel</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ADMIN TAB: Orders -->
+        <div x-show="adminTab === 'orders'" class="glass-card rounded-3xl p-6">
+          <h3 class="text-lg font-black text-slate-900 mb-4">All Orders</h3>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm">
+              <thead class="text-xs uppercase text-slate-400 border-b border-slate-100">
+                <tr>
+                  <th class="pb-3">Order</th>
+                  <th class="pb-3">Service</th>
+                  <th class="pb-3">Qty & Price</th>
+                  <th class="pb-3">Status</th>
+                  <th class="pb-3 text-right">Update</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                <template x-for="ord in orders" :key="ord.id">
+                  <tr>
+                    <td class="py-3 font-mono font-bold text-xs" x-text="ord.code"></td>
+                    <td class="py-3">
+                      <div class="font-bold text-slate-800 text-xs sm:text-sm" x-text="ord.serviceName"></div>
+                      <div class="text-[11px] text-slate-400 truncate max-w-xs" x-text="ord.link"></div>
+                    </td>
+                    <td class="py-3 text-xs">
+                      <span class="font-bold" x-text="ord.quantity + ' units'"></span> • <span class="font-bold text-blue-600" x-text="'₹' + ord.price"></span>
+                    </td>
+                    <td class="py-3">
+                      <span class="px-2 py-0.5 rounded-full text-xs font-bold"
+                            :class="ord.status === 'Completed' ? 'bg-emerald-100 text-emerald-700' : (ord.status === 'Processing' ? 'bg-amber-100 text-amber-700' : 'bg-rose-100 text-rose-700')"
+                            x-text="ord.status"></span>
+                    </td>
+                    <td class="py-3 text-right">
+                      <select @change="updateOrderStatus(ord, $event.target.value)" class="text-xs font-bold bg-slate-50 border rounded-xl px-2 py-1">
+                        <option value="Pending" :selected="ord.status === 'Pending'">Pending</option>
+                        <option value="Processing" :selected="ord.status === 'Processing'">Processing</option>
+                        <option value="Completed" :selected="ord.status === 'Completed'">Completed</option>
+                        <option value="Cancelled" :selected="ord.status === 'Cancelled'">Cancelled</option>
+                      </select>
+                    </td>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ADMIN TAB: Services CRUD -->
+        <div x-show="adminTab === 'services'" class="glass-card rounded-3xl p-6">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-black text-slate-900">Services Catalog</h3>
+            <button @click="openAddService()" class="px-3.5 py-2 rounded-2xl bg-purple-600 text-white font-bold text-xs hover:bg-purple-700">+ Add Service</button>
+          </div>
+          <div class="space-y-3">
+            <template x-for="srv in services" :key="srv.id">
+              <div class="p-4 rounded-2xl bg-white border border-slate-200 flex items-center justify-between gap-4">
+                <div>
+                  <h4 class="font-bold text-slate-900 text-sm" x-text="srv.name"></h4>
+                  <p class="text-xs text-slate-400 font-medium" x-text="srv.categorySlug + ' • ₹' + srv.pricePerK + '/1K • ' + srv.badge"></p>
+                </div>
+                <div class="flex items-center gap-2">
+                  <button @click="deleteService(srv.id)" class="p-2 rounded-xl text-rose-600 hover:bg-rose-50 text-xs font-bold">Delete</button>
+                </div>
+              </div>
+            </template>
+          </div>
+
+          <!-- Add / Edit Service Modal -->
+          <div x-show="newServiceModal" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4" style="display: none;">
+            <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border">
+              <h3 class="font-bold text-lg text-slate-900 mb-4">Create New Service</h3>
+              <div class="space-y-3">
+                <div>
+                  <label class="block text-xs font-bold text-slate-400 mb-1">Category</label>
+                  <select x-model="serviceForm.categoryId" class="w-full px-3 py-2 rounded-xl border text-sm">
+                    <template x-for="cat in categories" :key="cat.id">
+                      <option :value="cat.id" x-text="cat.name"></option>
+                    </template>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-400 mb-1">Service Name</label>
+                  <input type="text" x-model="serviceForm.name" placeholder="e.g. Instagram Followers HQ" class="w-full px-3 py-2 rounded-xl border text-sm" />
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-400 mb-1">Price per 1K (₹)</label>
+                  <input type="number" x-model="serviceForm.pricePerK" class="w-full px-3 py-2 rounded-xl border text-sm" />
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-400 mb-1">Badge</label>
+                  <input type="text" x-model="serviceForm.badge" placeholder="High quality | Instant start" class="w-full px-3 py-2 rounded-xl border text-sm" />
+                </div>
+                <button @click="saveService()" class="w-full py-2.5 rounded-xl bg-purple-600 text-white font-bold text-sm">Save Service</button>
+                <button @click="newServiceModal = false" class="w-full py-1.5 text-xs text-slate-500 font-semibold">Cancel</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ADMIN TAB: Payments Gateway -->
+        <div x-show="adminTab === 'payments'" class="glass-card rounded-3xl p-6 max-w-xl mx-auto">
+          <h3 class="text-lg font-black text-slate-900 mb-4">Payment Settings (Razorpay)</h3>
+          <div class="space-y-4">
+            <div>
+              <label class="block text-xs font-bold text-slate-500 mb-1">Key ID</label>
+              <input type="text" x-model="paymentSettings.keyId" class="w-full px-4 py-2.5 rounded-2xl border text-sm bg-white" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-500 mb-1">Key Secret</label>
+              <input type="password" x-model="paymentSettings.keySecret" class="w-full px-4 py-2.5 rounded-2xl border text-sm bg-white" />
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-bold text-slate-500 mb-1">Min Deposit (₹)</label>
+                <input type="number" x-model.number="paymentSettings.minDeposit" class="w-full px-4 py-2.5 rounded-2xl border text-sm bg-white" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-500 mb-1">Max Deposit (₹)</label>
+                <input type="number" x-model.number="paymentSettings.maxDeposit" class="w-full px-4 py-2.5 rounded-2xl border text-sm bg-white" />
+              </div>
+            </div>
+            <button @click="savePaymentSettings()" class="w-full py-3 rounded-2xl bg-purple-600 text-white font-bold text-sm hover:bg-purple-700">Save Gateway Configuration</button>
+          </div>
+        </div>
+
+        <!-- ADMIN TAB: Settings -->
+        <div x-show="adminTab === 'settings'" class="glass-card rounded-3xl p-6 max-w-xl mx-auto">
+          <h3 class="text-lg font-black text-slate-900 mb-4">Site Settings</h3>
+          <div class="space-y-4">
+            <div>
+              <label class="block text-xs font-bold text-slate-500 mb-1">Site Name</label>
+              <input type="text" x-model="siteSettings.siteName" class="w-full px-4 py-2.5 rounded-2xl border text-sm bg-white" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-500 mb-1">Tagline</label>
+              <input type="text" x-model="siteSettings.siteTagline" class="w-full px-4 py-2.5 rounded-2xl border text-sm bg-white" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-500 mb-1">Currency Symbol</label>
+              <input type="text" x-model="siteSettings.currency" class="w-full px-4 py-2.5 rounded-2xl border text-sm bg-white" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-500 mb-1">Admin Email</label>
+              <input type="email" x-model="siteSettings.adminEmail" class="w-full px-4 py-2.5 rounded-2xl border text-sm bg-white" />
+            </div>
+            <button @click="saveSettings()" class="w-full py-3 rounded-2xl bg-purple-600 text-white font-bold text-sm hover:bg-purple-700">Save System Settings</button>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ============================================== -->
+      <!-- BOTTOM DOCK NAVIGATION (Screenshot #10)        -->
+      <!-- ============================================== -->
+      <nav class="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 bg-white/95 backdrop-blur-xl px-4 py-2.5 rounded-full shadow-2xl border border-white/80 flex items-center gap-1 sm:gap-3">
+        
+        <button @click="navigate('dashboard')" 
+                class="flex flex-col items-center px-3 py-1.5 rounded-2xl text-[11px] font-bold transition cursor-pointer"
+                :class="currentView === 'dashboard' ? 'text-blue-600' : 'text-slate-400 hover:text-slate-700'">
+          <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+          <span>Home</span>
+        </button>
+
+        <button @click="navigate('new-order')" 
+                class="flex flex-col items-center px-3 py-1.5 rounded-2xl text-[11px] font-bold transition cursor-pointer"
+                :class="currentView === 'new-order' ? 'text-blue-600' : 'text-slate-400 hover:text-slate-700'">
+          <svg class="w-5 h-5 mb-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+          <span>Order</span>
+        </button>
+
+        <button @click="navigate('my-orders')" 
+                class="flex flex-col items-center px-3 py-1.5 rounded-2xl text-[11px] font-bold transition cursor-pointer"
+                :class="currentView === 'my-orders' ? 'text-blue-600' : 'text-slate-400 hover:text-slate-700'">
+          <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+          <span>Orders</span>
+        </button>
+
+        <button @click="navigate('add-funds')" 
+                class="flex flex-col items-center px-3 py-1.5 rounded-2xl text-[11px] font-bold transition cursor-pointer"
+                :class="currentView === 'add-funds' ? 'text-blue-600' : 'text-slate-400 hover:text-slate-700'">
+          <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+          <span>Wallet</span>
+        </button>
+
+        <button @click="navigate('profile')" 
+                class="flex flex-col items-center px-3 py-1.5 rounded-2xl text-[11px] font-bold transition cursor-pointer"
+                :class="currentView === 'profile' ? 'text-blue-600' : 'text-slate-400 hover:text-slate-700'">
+          <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+          <span>Profile</span>
+        </button>
+
+      </nav>
+
+    </div>
+
+    <!-- Application Module Entry -->
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

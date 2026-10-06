@@ -1,0 +1,6 @@
+{
+  "name": "SMM Panel - Social Media Marketing Hub",
+  "description": "Premium SMM Panel featuring 3D interactive card slider, order management, wallet, services catalog, support tickets, and admin dashboard.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
