@@ -4,19 +4,22 @@
  * ZERO TypeScript, ZERO React
  */
 
+import './index.css';
 import Alpine from 'alpinejs';
 import { init3DCardSlider } from './slider3d.js';
 
 // Global Alpine Store & App Controller
 window.smmApp = function () {
   return {
-    currentView: 'dashboard', // 'dashboard', 'new-order', 'add-funds', 'my-orders', 'services', 'transactions', 'support', 'profile', 'admin', 'auth'
+    currentView: 'landing', // 'landing', 'dashboard', 'new-order', 'add-funds', 'my-orders', 'services', 'transactions', 'support', 'profile', 'admin', 'auth'
     authTab: 'login', // 'login' or 'register'
     theme: 'light',
     toast: { show: false, message: '', type: 'success' },
-    sliderInstance: null,
+    landingSliderInstance: null,
+    dashboardSliderInstance: null,
+    activeLandingDot: 1,
 
-    // Active User State (Initial seed matching attached reference image)
+    // Active User State
     user: {
       id: 1024,
       name: 'Aaris Ali',
@@ -38,7 +41,76 @@ window.smmApp = function () {
       { id: 6, name: 'Twitter (X)', slug: 'twitter', icon: 'twitter' }
     ],
 
-    // Services Catalog (matching exact prices from screenshot)
+    // Featured Hero 3D Cards for Landing Slider (Matching image 20CA04EE-420B-4D6B-8751-19D4C9DD3C7D.png)
+    landingCards: [
+      {
+        id: 5,
+        serviceId: 5,
+        platform: 'YouTube',
+        title: 'YouTube Views',
+        meta: 'Real Views • High Retention',
+        price: '12',
+        speedTag: 'Fast Delivery',
+        bgGradient: 'from-rose-500 via-red-500 to-rose-600',
+        glowClass: 'card-glow-youtube',
+        accentColor: 'text-red-500',
+        type: 'youtube'
+      },
+      {
+        id: 1,
+        serviceId: 1,
+        platform: 'Instagram',
+        title: 'Instagram Followers',
+        meta: 'Real & Active Followers • High Quality • Fast Delivery',
+        price: '35',
+        speedTag: 'Starts in 1-2 Hours',
+        bgGradient: 'from-amber-400 via-rose-500 to-purple-600',
+        glowClass: 'card-glow-insta',
+        accentColor: 'text-rose-500',
+        type: 'instagram'
+      },
+      {
+        id: 7,
+        serviceId: 7,
+        platform: 'Telegram',
+        title: 'Telegram Members',
+        meta: 'Real & Active Members • Instant Start',
+        price: '45',
+        speedTag: 'Fast Delivery',
+        bgGradient: 'from-sky-400 via-blue-500 to-indigo-600',
+        glowClass: 'card-glow-telegram',
+        accentColor: 'text-sky-500',
+        type: 'telegram'
+      },
+      {
+        id: 9,
+        serviceId: 9,
+        platform: 'TikTok',
+        title: 'TikTok Followers',
+        meta: 'High Retention • Active Accounts',
+        price: '38',
+        speedTag: 'Instant Start',
+        bgGradient: 'from-slate-800 via-neutral-900 to-black',
+        glowClass: 'card-glow-blue',
+        accentColor: 'text-cyan-400',
+        type: 'tiktok'
+      },
+      {
+        id: 10,
+        serviceId: 10,
+        platform: 'Twitter (X)',
+        title: 'Twitter (X) Followers',
+        meta: 'Global Profiles • Fast Delivery',
+        price: '55',
+        speedTag: 'Fast Delivery',
+        bgGradient: 'from-slate-700 via-slate-800 to-slate-950',
+        glowClass: 'card-glow-blue',
+        accentColor: 'text-slate-300',
+        type: 'twitter'
+      }
+    ],
+
+    // Services Catalog
     services: [
       {
         id: 1,
@@ -49,7 +121,7 @@ window.smmApp = function () {
         minQty: 1000,
         maxQty: 1010000,
         badge: 'High quality followers | Instant Start | No Drop',
-        speed: 'Fast Delivery',
+        speed: 'Starts in 1-2 Hours',
         description: 'Real looking high-retention Instagram followers with 30-day refill guarantee.'
       },
       {
@@ -93,10 +165,10 @@ window.smmApp = function () {
         categoryId: 2,
         categorySlug: 'youtube',
         name: 'YouTube Views',
-        pricePerK: 24,
+        pricePerK: 12,
         minQty: 1000,
         maxQty: 5000000,
-        badge: 'High Retention Views | Monetizable Safe',
+        badge: 'Real Views • High Retention',
         speed: 'Fast Delivery',
         description: 'High retention organic view promotion for YouTube videos.'
       },
@@ -120,7 +192,7 @@ window.smmApp = function () {
         pricePerK: 45,
         minQty: 500,
         maxQty: 200000,
-        badge: '0% Drop Global Channel Members',
+        badge: 'Real & Active Members • Instant Start',
         speed: 'Fast Delivery',
         description: 'Active channel and group member boosts with high stickiness.'
       },
@@ -162,7 +234,7 @@ window.smmApp = function () {
       }
     ],
 
-    // User Orders matching Screenshot #5
+    // User Orders matching reference
     orders: [
       {
         id: 1,
@@ -210,7 +282,7 @@ window.smmApp = function () {
       }
     ],
 
-    // Transactions matching Screenshot #7
+    // Transactions
     transactions: [
       {
         id: 4,
@@ -254,7 +326,7 @@ window.smmApp = function () {
       }
     ],
 
-    // Support Tickets matching Screenshot #8
+    // Support Tickets
     tickets: [
       {
         id: 1,
@@ -301,16 +373,16 @@ window.smmApp = function () {
       }
     ],
 
-    // New Order Form State (matching Screenshot #3 & #4)
+    // New Order Form State
     newOrder: {
-      step: 1, // 1: Select Service, 2: Details & Contact, 3: Payment
+      step: 1,
       selectedCategory: 'instagram',
       selectedServiceId: 1,
       link: 'https://instagram.com/aarisali',
       quantity: 1000
     },
 
-    // Add Funds State (matching Screenshot #4)
+    // Add Funds State
     addFunds: {
       amount: 200,
       customAmount: '',
@@ -323,7 +395,7 @@ window.smmApp = function () {
     txnFilter: 'All',
     ticketFilter: 'All',
     serviceSearch: '',
-    serviceCategoryFilter: 'instagram',
+    serviceCategoryFilter: '',
 
     // Support Modal & Detail State
     activeTicket: null,
@@ -332,7 +404,7 @@ window.smmApp = function () {
     showNewTicketModal: false,
 
     // Admin Panel State
-    adminTab: 'dashboard', // 'dashboard', 'users', 'orders', 'services', 'payments', 'settings', 'profile'
+    adminTab: 'dashboard',
     adminStats: {
       totalUsers: 142,
       totalOrders: 1258,
@@ -366,7 +438,6 @@ window.smmApp = function () {
       maxDeposit: 50000
     },
     newServiceModal: false,
-    editingService: null,
     serviceForm: {
       id: null,
       categoryId: 1,
@@ -401,7 +472,7 @@ window.smmApp = function () {
 
     // Lifecycle Init
     init() {
-      // Load saved state or use default seed
+      // Load saved state
       const savedUser = localStorage.getItem('smm_user');
       if (savedUser) {
         try {
@@ -425,35 +496,142 @@ window.smmApp = function () {
         try { this.tickets = JSON.parse(savedTickets); } catch (e) {}
       }
 
-      // Initialize 3D Slider after DOM render
-      this.$nextTick(() => {
-        this.initSlider();
+      // Handle Initial Route from URL pathname
+      this.handleRoute();
+
+      // Listen for browser navigation (back/forward)
+      window.addEventListener('popstate', () => {
+        this.handleRoute();
       });
 
-      // Try background syncing with live PHP backend if running
+      // Try background syncing with live PHP backend
       this.syncWithBackend();
     },
 
-    initSlider() {
-      if (this.currentView === 'dashboard') {
-        setTimeout(() => {
-          this.sliderInstance = init3DCardSlider({
-            containerSelector: '#dashboard-slider-container',
-            cardsSelector: '.dashboard-3d-card',
-            initialIndex: 1
-          });
-        }, 100);
+    // Route Handler for Direct URL Access & Refresh
+    handleRoute() {
+      const path = (window.location.pathname || '').replace(/\/+$/, '') || '/';
+
+      if (path === '/login') {
+        this.currentView = 'auth';
+        this.authTab = 'login';
+      } else if (path === '/register') {
+        this.currentView = 'auth';
+        this.authTab = 'register';
+      } else if (path === '/admin') {
+        this.currentView = 'admin';
+        this.adminTab = 'dashboard';
+      } else if (path === '/dashboard') {
+        this.currentView = 'dashboard';
+      } else if (path === '/new-order') {
+        this.currentView = 'new-order';
+      } else if (path === '/services') {
+        this.currentView = 'services';
+      } else if (path === '/orders' || path === '/my-orders') {
+        this.currentView = 'my-orders';
+      } else if (path === '/wallet' || path === '/add-funds') {
+        this.currentView = 'add-funds';
+      } else if (path === '/transactions') {
+        this.currentView = 'transactions';
+      } else if (path === '/support') {
+        this.currentView = 'support';
+      } else if (path === '/profile') {
+        this.currentView = 'profile';
+      } else {
+        this.currentView = 'landing';
+      }
+
+      this.$nextTick(() => {
+        if (this.currentView === 'landing') {
+          this.initLandingSlider();
+        } else if (this.currentView === 'dashboard') {
+          this.initDashboardSlider();
+        }
+      });
+    },
+
+    navigate(view, push = true) {
+      this.currentView = view;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      let path = '/';
+      if (view === 'auth') {
+        path = this.authTab === 'register' ? '/register' : '/login';
+      } else if (view === 'admin') {
+        path = '/admin';
+      } else if (view === 'dashboard') {
+        path = '/dashboard';
+      } else if (view === 'new-order') {
+        path = '/new-order';
+      } else if (view === 'services') {
+        path = '/services';
+      } else if (view === 'my-orders') {
+        path = '/orders';
+      } else if (view === 'add-funds') {
+        path = '/wallet';
+      } else if (view === 'transactions') {
+        path = '/transactions';
+      } else if (view === 'support') {
+        path = '/support';
+      } else if (view === 'profile') {
+        path = '/profile';
+      } else {
+        path = '/';
+      }
+
+      if (push && window.location.pathname !== path) {
+        window.history.pushState({ view }, '', path);
+      }
+
+      this.$nextTick(() => {
+        if (view === 'landing') {
+          this.initLandingSlider();
+        } else if (view === 'dashboard') {
+          this.initDashboardSlider();
+        }
+      });
+    },
+
+    initLandingSlider() {
+      setTimeout(() => {
+        this.landingSliderInstance = init3DCardSlider({
+          containerSelector: '#landing-slider-container',
+          cardsSelector: '.landing-3d-card',
+          initialIndex: 1,
+          onIndexChange: (idx) => {
+            this.activeLandingDot = idx;
+          }
+        });
+      }, 80);
+    },
+
+    initDashboardSlider() {
+      setTimeout(() => {
+        this.dashboardSliderInstance = init3DCardSlider({
+          containerSelector: '#dashboard-slider-container',
+          cardsSelector: '.dashboard-3d-card',
+          initialIndex: 1
+        });
+      }, 80);
+    },
+
+    jumpToLandingCard(index) {
+      if (this.landingSliderInstance) {
+        this.landingSliderInstance.goTo(index);
+        this.activeLandingDot = index;
       }
     },
 
-    navigate(view) {
-      this.currentView = view;
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      if (view === 'dashboard') {
-        this.$nextTick(() => {
-          this.initSlider();
-        });
+    orderFeaturedService(card) {
+      if (card && card.serviceId) {
+        this.newOrder.selectedServiceId = card.serviceId;
+        const s = this.services.find(srv => srv.id === card.serviceId);
+        if (s) {
+          this.newOrder.selectedCategory = s.categorySlug;
+          this.newOrder.quantity = s.minQty;
+        }
       }
+      this.navigate('new-order');
     },
 
     // Toast Notification Helper
@@ -466,9 +644,7 @@ window.smmApp = function () {
       }, 3500);
     },
 
-    // ==========================================
     // Order Calculation & Placement
-    // ==========================================
     getSelectedService() {
       return this.services.find(s => s.id === this.newOrder.selectedServiceId) || this.services[0];
     },
@@ -496,7 +672,7 @@ window.smmApp = function () {
       this.newOrder.selectedServiceId = service.id;
       this.newOrder.selectedCategory = service.categorySlug;
       this.newOrder.quantity = service.minQty;
-      this.newOrder.step = 2; // move to details & contact
+      this.newOrder.step = 2;
     },
 
     placeOrder() {
@@ -550,9 +726,7 @@ window.smmApp = function () {
       this.navigate('my-orders');
     },
 
-    // ==========================================
     // Wallet & Add Funds
-    // ==========================================
     setAddFundsPreset(val) {
       this.addFunds.amount = val;
       this.addFunds.customAmount = '';
@@ -587,9 +761,7 @@ window.smmApp = function () {
       }, 800);
     },
 
-    // ==========================================
     // Support Tickets
-    // ==========================================
     createTicket() {
       if (!this.newTicket.subject || !this.newTicket.message) {
         this.showToast('Please fill in both subject and message.', 'error');
@@ -632,9 +804,7 @@ window.smmApp = function () {
       this.showToast('Reply submitted.');
     },
 
-    // ==========================================
     // Profile Updates
-    // ==========================================
     updateProfile() {
       if (!this.profileForm.name) {
         this.showToast('Name cannot be empty.', 'error');
@@ -659,16 +829,14 @@ window.smmApp = function () {
       this.showToast('Password changed successfully!');
     },
 
-    // ==========================================
     // Auth Login & Register
-    // ==========================================
     loginUser() {
       if (!this.authForm.email || !this.authForm.password) {
         this.showToast('Please enter both email and password.', 'error');
         return;
       }
 
-      // Check if admin login
+      // Check admin login
       if (this.authForm.email === 'admin@smmpanel.local') {
         this.user = {
           id: 1,
@@ -717,16 +885,13 @@ window.smmApp = function () {
       this.user.isLoggedIn = false;
       localStorage.removeItem('smm_user');
       this.showToast('Logged out successfully.');
-      this.navigate('auth');
+      this.navigate('landing');
     },
 
-    // ==========================================
     // Admin Operations
-    // ==========================================
     updateOrderStatus(order, newStatus) {
       order.status = newStatus;
       if (newStatus === 'Cancelled') {
-        // Refund order
         this.user.balance = Math.round((this.user.balance + order.price) * 100) / 100;
         this.transactions.unshift({
           id: this.transactions.length + 1,
@@ -794,7 +959,6 @@ window.smmApp = function () {
       const cat = this.categories.find(c => c.id === parseInt(this.serviceForm.categoryId)) || this.categories[0];
 
       if (this.serviceForm.id) {
-        // Edit existing
         const idx = this.services.findIndex(s => s.id === this.serviceForm.id);
         if (idx !== -1) {
           this.services[idx] = {
@@ -812,7 +976,6 @@ window.smmApp = function () {
         }
         this.showToast('Service updated successfully.');
       } else {
-        // Add new
         const newServ = {
           id: this.services.length + 1,
           categoryId: parseInt(this.serviceForm.categoryId),
@@ -849,9 +1012,7 @@ window.smmApp = function () {
       this.showToast('Payment gateway settings updated.');
     },
 
-    // ==========================================
     // Persistence & Backend Sync Helper
-    // ==========================================
     persistData() {
       localStorage.setItem('smm_user', JSON.stringify(this.user));
       localStorage.setItem('smm_orders', JSON.stringify(this.orders));
@@ -868,12 +1029,9 @@ window.smmApp = function () {
             this.user = { ...this.user, ...data.user, isLoggedIn: true };
           }
         }
-      } catch (e) {
-        // Silent fallback in static / Vite dev
-      }
+      } catch (e) {}
     },
 
-    // Computed / Filtered Getters
     filteredOrders() {
       if (this.orderFilter === 'All') return this.orders;
       return this.orders.filter(o => o.status === this.orderFilter);

@@ -8,8 +8,8 @@ import { gsap } from 'gsap';
 export function init3DCardSlider({
   containerSelector = '#card-slider-container',
   cardsSelector = '.slider-card-item',
-  onCardActivate = null,
-  initialIndex = 1
+  initialIndex = 1,
+  onIndexChange = null
 } = {}) {
   const container = document.querySelector(containerSelector);
   if (!container) return null;
@@ -21,70 +21,71 @@ export function init3DCardSlider({
   let isDragging = false;
   let startX = 0;
   let currentX = 0;
-  let dragThreshold = 45;
+  let dragThreshold = 35;
 
   function updateCards(animate = true) {
     const isMobile = window.innerWidth < 768;
-    const xOffset = isMobile ? 140 : 260;
-    const zOffset = isMobile ? -70 : -100;
-    const rotateAngle = isMobile ? 18 : 25;
+    const isTablet = window.innerWidth >= 768 && window.innerWidth < 1024;
+    const xOffset = isMobile ? 150 : (isTablet ? 220 : 310);
+    const zOffset = isMobile ? -60 : -90;
+    const rotateAngle = isMobile ? 16 : 22;
 
     cards.forEach((card, index) => {
       const diff = index - activeIndex;
-      const duration = animate ? 0.55 : 0;
-      const ease = 'power3.out';
+      const duration = animate ? 0.5 : 0;
+      const ease = 'power2.out';
 
       if (diff === 0) {
         // Active Center Card
         card.setAttribute('data-active', 'true');
         gsap.to(card, {
           x: 0,
-          z: 60,
+          z: 70,
           scale: 1,
           rotationY: 0,
           opacity: 1,
           zIndex: 40,
           duration,
           ease,
-          filter: 'drop-shadow(0 25px 35px rgba(0,0,0,0.18))'
+          filter: 'drop-shadow(0 25px 40px rgba(0,0,0,0.16))'
         });
       } else if (diff === -1) {
-        // Left Card
+        // Left Card (Tilted back to right)
         card.removeAttribute('data-active');
         gsap.to(card, {
           x: -xOffset,
           z: zOffset,
-          scale: isMobile ? 0.86 : 0.88,
+          scale: isMobile ? 0.88 : 0.9,
           rotationY: rotateAngle,
-          opacity: 0.82,
+          opacity: 0.88,
           zIndex: 20,
           duration,
           ease,
-          filter: 'drop-shadow(0 15px 25px rgba(0,0,0,0.12))'
+          filter: 'drop-shadow(0 15px 25px rgba(0,0,0,0.10))'
         });
       } else if (diff === 1) {
-        // Right Card
+        // Right Card (Tilted back to left)
         card.removeAttribute('data-active');
         gsap.to(card, {
           x: xOffset,
           z: zOffset,
-          scale: isMobile ? 0.86 : 0.88,
+          scale: isMobile ? 0.88 : 0.9,
           rotationY: -rotateAngle,
-          opacity: 0.82,
+          opacity: 0.88,
           zIndex: 20,
           duration,
           ease,
-          filter: 'drop-shadow(0 15px 25px rgba(0,0,0,0.12))'
+          filter: 'drop-shadow(0 15px 25px rgba(0,0,0,0.10))'
         });
       } else {
         // Distant / Hidden Cards
         card.removeAttribute('data-active');
         const dir = diff < 0 ? -1 : 1;
         gsap.to(card, {
-          x: dir * (xOffset * 1.6),
-          z: -180,
-          scale: 0.72,
-          rotationY: dir * (rotateAngle * 1.3),
+          x: dir * (xOffset * 1.5),
+          z: -160,
+          scale: 0.75,
+          rotationY: dir * (rotateAngle * 1.2),
           opacity: 0,
           zIndex: 5,
           duration,
@@ -93,8 +94,8 @@ export function init3DCardSlider({
       }
     });
 
-    if (typeof onCardActivate === 'function') {
-      onCardActivate(activeIndex, cards[activeIndex]);
+    if (typeof onIndexChange === 'function') {
+      onIndexChange(activeIndex, cards[activeIndex]);
     }
   }
 
@@ -182,12 +183,10 @@ export function init3DCardSlider({
     currentX = 0;
   });
 
-  // Resize listener for responsive 3D transforms
   window.addEventListener('resize', () => {
     updateCards(false);
   });
 
-  // Initial draw
   updateCards(false);
 
   return {
